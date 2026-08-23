@@ -1,0 +1,13 @@
+# Project Skills
+
+This directory contains source-controlled Codex skills for repeatable project
+workflows. Each skill is a folder with a `SKILL.md` entrypoint and optional
+resources.
+
+| Skill | Use for |
+| --- | --- |
+| `incident-dataset` | Designing or changing synthetic incident records and dataset splits. |
+| `incident-evaluation` | Creating or changing evaluation, graders, benchmark reports, and experiment comparisons. |
+
+Keep a skill focused on reusable, project-specific guidance. Use `AGENTS.md`
+for repository-wide rules instead.

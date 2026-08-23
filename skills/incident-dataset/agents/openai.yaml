@@ -1,0 +1,3 @@
+interface:
+  display_name: "Incident Dataset"
+  short_description: "Build reproducible synthetic incident datasets"
