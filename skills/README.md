@@ -8,6 +8,7 @@ resources.
 | --- | --- |
 | `incident-dataset` | Designing or changing synthetic incident records and dataset splits. |
 | `incident-evaluation` | Creating or changing evaluation, graders, benchmark reports, and experiment comparisons. |
+| `feature-spec` | Creating and maintaining implementation-ready feature specifications. |
 
 Keep a skill focused on reusable, project-specific guidance. Use `AGENTS.md`
 for repository-wide rules instead.

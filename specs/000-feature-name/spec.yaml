@@ -1,0 +1,26 @@
+id: "000-feature-name"
+title: "Feature name"
+status: "template"
+owner: null
+created: null
+updated: null
+
+summary: "Replace with a concise description of the intended outcome."
+
+links:
+  spec: "spec.md"
+  issue: null
+  pull_request: null
+
+scope:
+  in_scope: []
+  out_of_scope: []
+
+interfaces: []
+dependencies: []
+
+acceptance_criteria: []
+
+verification:
+  commands: []
+  notes: []

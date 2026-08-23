@@ -41,6 +41,7 @@ explicitly routes you to. Do not load every skill by default.
 | --- | --- | --- |
 | Incident dataset | Creating or changing synthetic incidents, labels, schemas, generators, or dataset splits. | [`skills/incident-dataset/SKILL.md`](skills/incident-dataset/SKILL.md) |
 | Incident evaluation | Creating or changing graders, benchmarks, evaluation reports, or experiment comparisons. | [`skills/incident-evaluation/SKILL.md`](skills/incident-evaluation/SKILL.md) |
+| Feature spec | Scoping a new feature or updating its requirements, acceptance criteria, or implementation plan. | [`skills/feature-spec/SKILL.md`](skills/feature-spec/SKILL.md) |
 
 Each skill must keep valid YAML frontmatter with a concise, discriminating
 description. Add an index row whenever a new project skill is added.
