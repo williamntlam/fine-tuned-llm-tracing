@@ -35,6 +35,60 @@ microservices.
 - Apply factories only to configured dependency selection and strategies only
   to genuinely interchangeable behavior. Avoid global clients, a DI container,
   and interfaces for one-off logic.
+- Keep the scaffold framework-unopinionated: standard Python typing and
+  dataclasses are sufficient unless a concrete boundary demonstrates a need for
+  another validation or serialization library. No web framework, ORM, or model
+  SDK is selected by this specification; Pyright is the selected static checker.
+- Make domain entities, use-case commands/results, port inputs/results,
+  settings, and persisted/transport schemas named typed contracts. Public code
+  is fully annotated; `Any` and untyped mappings may exist only briefly at an
+  external adapter/interface boundary before translation to a named type.
+- Use an ignored local `.env` for development secrets and commit only
+  `.env.example` with empty `OPENAI_API_KEY=` and optional `HF_TOKEN=` values.
+  The Hugging Face token is unnecessary for an already local open-weight model,
+  but may be needed for gated artifact access. CI and production inject secrets
+  through their approved environment mechanism.
+
+## Target codebase directories
+
+This is a planned scaffold; it does not yet exist in the repository.
+
+```text
+src/incident_diagnosis/
+├── domain/                 # Incident/diagnosis types and suitable ports
+├── application/
+│   ├── ports/              # Inference and fine-tuning contracts
+│   └── use_cases/          # Generate, train, evaluate, diagnose workflows
+├── infrastructure/
+│   ├── adapters/           # Files, in-memory, OpenAI, and Qwen implementations
+│   ├── decorators/         # Telemetry, retry, and redaction wrappers
+│   └── factories.py        # Configured dependency construction
+├── interfaces/             # CLI, HTTP, and job composition roots
+└── shared/                 # Typed settings and generic errors
+
+tests/{unit,integration,e2e}/  # Test tiers
+configs/                       # Versioned, non-secret runtime config
+scripts/                       # Reproducible developer commands
+docs/{architecture,development}.md
+pyproject.toml
+.env.example                   # Empty provider-secret template
+.env                           # Local only; Git-ignored
+.gitignore
+```
+
+The complete tree, including representative first-slice module names, is in
+[spec.md](spec.md#target-repository-layout). Generated data, checkpoints,
+logs, and experiment runs remain outside `src/` and version control.
+
+## Fine-tuning context
+
+Future work targets SFT, DPO, and RFT for hosted OpenAI models, plus SFT, DPO,
+and a local reinforcement method for open-weight Qwen. This is architecture
+context only, not an implementation commitment in this specification. Provider
+and method remain typed configuration values; OpenAI RFT and a local method
+such as GRPO must not be treated as equivalent. A follow-up fine-tuning spec
+must define the per-provider/method capability matrix, training data shape,
+grader/reward requirements, runtime, artifacts, and evaluation evidence.
 
 ## Pattern decisions
 
@@ -70,8 +124,10 @@ event sourcing, and CQRS.
 - Ports cover model inference, fine-tuning, storage, tracking, and telemetry.
   OpenAI API and Hugging Face Qwen adapters implement the model ports and are
   selected at the composition root through configuration.
-- Python packaging, test, lint, and typing tools remain an implementation-time
-  decision, selected for reproducible ML/GPU and CI support.
+- Python packaging, test, and lint tools remain an implementation-time decision,
+  selected for reproducible ML/GPU and CI support. Pyright must be configured
+  in `pyproject.toml` with `typeCheckingMode = "strict"`, include `src/` and
+  `tests/`, and pass locally and in CI.
 
 ## Delivery and verification
 
@@ -97,6 +153,10 @@ event sourcing, and CQRS.
 - [ ] Documentation explains extension conventions; secrets and generated
   artifacts are excluded and their local locations are documented.
 - [ ] Architecture documentation records the implemented and deferred patterns.
+- [ ] Core contracts are explicitly typed, and Pyright strict mode passes for
+  `src/` and `tests` without errors.
+- [ ] `.env.example` has empty `OPENAI_API_KEY` and optional `HF_TOKEN`
+  placeholders; `.env` is ignored and contains no committed secrets.
 
 ## Risks and open questions
 

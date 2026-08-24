@@ -32,6 +32,9 @@ project today and can grow into separately runnable workloads later.
   interchangeable graders or training approaches.
 - Provide a test layout and configuration conventions that support unit,
   integration, and end-to-end checks.
+- Make every core input, output, configuration value, and boundary contract
+  explicit and statically type-checked without prescribing a web framework,
+  ORM, validation library, or model SDK.
 
 ## Non-goals
 
@@ -91,9 +94,30 @@ project today and can grow into separately runnable workloads later.
 - Add top-level directories for `tests/`, `scripts/`, and `configs/`.
   Organize tests as `tests/unit/`, `tests/integration/`, and `tests/e2e/`,
   mirroring the package where helpful.
+- Add a local `.env` convention for provider secrets and a committed
+  `.env.example` containing variable names and empty placeholder values only.
+  `.env` must be listed in `.gitignore`; no API key, token, endpoint containing
+  credentials, or other secret may be committed. The initial example declares
+  `OPENAI_API_KEY=` and `HF_TOKEN=`. `HF_TOKEN` is optional for a locally
+  available open-weight Qwen model, but supports access to gated Hugging Face
+  model artifacts when required.
 - Add package and test configuration using a single supported Python project
   configuration file. The implementation task will select the dependency and
   test tools appropriate to the first runnable component.
+- Define domain entities/value objects, use-case commands and results, port
+  requests and responses, typed settings, and persisted or transport contracts
+  as named Python types. Use standard-library typing constructs and dataclasses
+  where sufficient; adopt a validation or serialization library only when a
+  concrete boundary requires it.
+- Require complete annotations for public functions, methods, port protocols,
+  and data-model fields. Do not use untyped dictionaries or `Any` as a
+  substitute for a core contract. A narrowly contained provider or file-format
+  payload may be untyped only at its infrastructure boundary and must be
+  translated immediately into a named application or domain type.
+- Use Pyright as the static type checker. Configure
+  `typeCheckingMode = "strict"` in `pyproject.toml`, include `src/` and
+  `tests/`, and run it locally and in CI. Do not weaken strict mode globally;
+  any necessary boundary exception must be narrow, documented, and tested.
 - Include a short architecture document and a root-level development command
   reference when the scaffold is implemented.
 - Document the pattern decision matrix below with the scaffold. Decorators are
@@ -121,6 +145,103 @@ project today and can grow into separately runnable workloads later.
 | `infrastructure` | File, OpenAI API and Hugging Face Qwen model/training integrations, tracking, and telemetry. | Adapter, factory, decorator, strategy implementation |
 | `interfaces` | FastAPI routes, CLI commands, scheduled/training job entrypoints. | Controller/command, composition root |
 | `shared` | Typed configuration, error types, and strictly generic helpers. | Options/settings |
+
+## Target repository layout
+
+This is the **target scaffold**, not the current repository state. At the time
+of this specification, the repository contains documentation and workflow
+files only; the directories below are created by this specification's
+implementation work. File names beneath the layer directories are
+representative homes for the first vertical slice, not a requirement to create
+empty modules before they have a responsibility.
+
+```text
+.
+├── src/
+│   └── incident_diagnosis/
+│       ├── __init__.py
+│       ├── domain/
+│       │   ├── __init__.py
+│       │   ├── incidents.py          # Incident entities and value objects
+│       │   ├── diagnoses.py          # Diagnosis result domain types
+│       │   └── ports.py              # Domain-owned ports, where appropriate
+│       ├── application/
+│       │   ├── __init__.py
+│       │   ├── ports/
+│       │   │   ├── inference.py      # Provider-neutral inference port
+│       │   │   └── fine_tuning.py    # Provider-neutral tuning lifecycle port
+│       │   ├── use_cases/
+│       │   │   ├── diagnose_incident.py
+│       │   │   ├── generate_incidents.py
+│       │   │   ├── train_model.py
+│       │   │   └── evaluate_run.py
+│       │   └── dto.py                # Use-case request/result types
+│       ├── infrastructure/
+│       │   ├── adapters/
+│       │   │   ├── files.py
+│       │   │   ├── openai.py
+│       │   │   ├── qwen.py
+│       │   │   └── in_memory.py
+│       │   ├── decorators/
+│       │   │   ├── telemetry.py
+│       │   │   ├── retry.py
+│       │   │   └── redaction.py
+│       │   └── factories.py          # Configured adapter construction
+│       ├── interfaces/
+│       │   ├── cli.py                # Command-line composition root
+│       │   ├── api.py                # HTTP composition root, if introduced
+│       │   └── jobs.py               # Batch/training job entrypoints
+│       └── shared/
+│           ├── settings.py           # Typed, validated settings
+│           └── errors.py
+├── tests/
+│   ├── unit/                         # Offline tests; mirror src/ where useful
+│   ├── integration/                  # Adapter and filesystem boundaries
+│   └── e2e/                          # Runnable workflow checks
+├── configs/                          # Versioned non-secret runtime configs
+├── scripts/                          # Developer and reproducibility commands
+├── docs/
+│   ├── architecture.md               # Layer rules and extension guide
+│   └── development.md                # Local command reference
+├── specs/                            # Feature specifications
+├── skills/                           # Reusable project-agent workflows
+├── pyproject.toml                    # Tool config, including Pyright strict mode
+├── .env.example                      # Committed empty secret-variable template
+├── .env                              # Local provider secrets; ignored by Git
+├── README.md
+└── .gitignore                        # Excludes secrets and generated artifacts
+```
+
+Keep generated datasets, checkpoints, logs, and experiment runs outside
+`src/` and outside version control. Their eventual local paths are documented
+when the relevant dataset, training, or evaluation specifications are added.
+
+## Fine-tuning implementation context
+
+This context guides the organization of future work; it does **not** implement
+training methods or define their dataset schemas in this structure-only
+specification.
+
+The project intends to fine-tune both a locally run open-weight model (initially
+Qwen) and a hosted OpenAI model. The planned method families are supervised
+fine-tuning (SFT), direct preference optimization (DPO), and reinforcement
+fine-tuning (RFT). The training port, use cases, adapters, configuration, and
+experiment records must preserve the provider and method as explicit typed
+values.
+
+| Path | Intended methods | Organization rule |
+| --- | --- | --- |
+| OpenAI hosted model | SFT, DPO, RFT | Keep job submission, file upload, grader configuration, polling, credentials, and provider-specific result references in the OpenAI adapter. |
+| Open-weight Qwen | SFT, DPO, and a local reinforcement method | Keep GPU/runtime setup, trainer configuration, reward/grader implementation, checkpoints, and local artifacts in the Qwen adapter. |
+
+RFT is reinforcement fine-tuning, not a synonym for SFT. A local reinforcement
+method (for example, GRPO) is not assumed to be semantically or operationally
+identical to OpenAI RFT. A future fine-tuning specification must define a
+capability matrix for every provider-and-method pair, including supported model
+versions, dataset shape, required grader/reward contract, configuration,
+runtime, artifact format, evaluation evidence, and unsupported combinations.
+Provider-specific method settings must stay out of application use cases;
+configuration and adapters validate them before a job starts.
 
 ## Pattern decision matrix
 
@@ -162,6 +283,22 @@ project today and can grow into separately runnable workloads later.
   the configuration boundary but cannot leak into application use cases.
 - Configuration must be typed and validated at startup. Secrets are supplied
   through the environment or an approved secret mechanism and never committed.
+  Local development may load an ignored `.env` created from `.env.example`.
+  The example contains `OPENAI_API_KEY=` and optional `HF_TOKEN=` with empty
+  values only; production/CI secrets are injected by their approved environment
+  mechanism rather than from a committed file.
+- Core contracts are named typed models rather than untyped mappings: this
+  includes domain entities, use-case commands/results, ports, settings, and
+  persisted or transport schemas. External payloads are translated at their
+  adapter/interface boundary before they reach application or domain code.
+- Pyright runs in strict mode for `src/` and `tests/`. Its initial
+  `pyproject.toml` configuration is:
+
+  ```toml
+  [tool.pyright]
+  include = ["src", "tests"]
+  typeCheckingMode = "strict"
+  ```
 
 ## Acceptance criteria
 
@@ -184,16 +321,24 @@ project today and can grow into separately runnable workloads later.
   fake ports.
 - [ ] Test commands run the unit-test tier without requiring network access,
   credentials, a GPU, or external services.
+- [ ] Public code contracts and core data models have explicit type
+  annotations; no untyped dictionary or `Any` crosses from an external
+  adapter/interface into application or domain code.
+- [ ] `pyright` in strict mode runs against `src/` and `tests/` from the
+  documented local/CI command without type errors.
 - [ ] The architecture and developer documentation explain the package map,
   dependency direction, configuration, the pattern decision matrix, and how to
   add a new adapter or use case.
 - [ ] Generated artifacts and secrets are excluded through version-control
   configuration and documented local paths.
+- [ ] `.env.example` documents empty `OPENAI_API_KEY` and optional `HF_TOKEN`
+  variables, while `.env` is ignored by Git and never committed.
 
 ## Implementation plan
 
-1. Select the Python packaging, dependency, linting, typing, and testing tools
-   based on the first planned executable component; record the decision.
+1. Select the Python packaging, dependency, linting, and testing tools based on
+   the first planned executable component; record the decision and configure
+   Pyright strict mode in the single project configuration file.
 2. Add the package, test, script, and configuration directory skeleton with
    minimal `__init__` files only where needed by the selected tooling.
 3. Define a small vertical slice: one domain type, one port, one application
@@ -201,10 +346,11 @@ project today and can grow into separately runnable workloads later.
    adapters for inference and fine-tuning, composable port decorators, and a
    composition root.
 4. Add unit tests demonstrating port substitution and enforcing the dependency
-   direction where feasible.
-5. Add architecture and developer documentation, artifact exclusions, and
-   canonical local/CI validation commands, including the pattern decision
-   matrix and its explicit deferrals.
+   direction where feasible, plus the `pyright` strict-mode command for source
+   and tests.
+5. Add architecture and developer documentation, `.env.example`, artifact and
+   secret exclusions, and canonical local/CI validation commands, including the
+   pattern decision matrix and its explicit deferrals.
 6. Update this specification with actual commands and verification evidence;
    mark it complete only after all criteria pass.
 
@@ -226,7 +372,7 @@ project today and can grow into separately runnable workloads later.
 
 The implementation specification must be verified with:
 
-- the selected formatter, linter, and type checker;
+- the selected formatter and linter, plus `pyright` in strict mode;
 - the full unit-test tier running offline;
 - one test proving a use case accepts a fake port;
 - configuration-level and offline contract tests proving inference and

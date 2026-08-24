@@ -5,7 +5,7 @@ owner: null
 created: "2026-08-23"
 updated: "2026-08-23"
 
-summary: "Establish a Python-first layered architecture for scalable incident-diagnosis development."
+summary: "Establish a framework-unopinionated Python layered architecture with explicit typed contracts, Pyright strict checking, and a target directory scaffold."
 
 links:
   spec: "spec.md"
@@ -16,8 +16,12 @@ links:
 scope:
   in_scope:
     - "Python package and test directory structure"
+    - "Explicit target repository tree with representative first-slice module locations"
+    - "Named typed data contracts and static type-checking enforcement"
+    - "Ignored local .env and placeholder-only .env.example provider-secret convention"
     - "Layered dependency boundaries and composition roots"
     - "Ports/adapters, use cases, factories, and provider integration guidance"
+    - "Fine-tuning context for OpenAI and open-weight Qwen across SFT, DPO, and reinforcement methods"
     - "Decorator-based cross-cutting provider behavior and explicit pattern deferrals"
     - "Architecture, configuration, and developer documentation"
   out_of_scope:
@@ -32,9 +36,13 @@ interfaces:
   - "OpenAI API and Hugging Face Qwen adapters selected at the composition root"
   - "Composable decorators for provider telemetry, retries, rate limits, and redaction"
   - "Interface-boundary transport schemas"
+  - "Named typed domain, use-case, port, settings, persistence, and transport contracts"
+  - "Environment variables: OPENAI_API_KEY and optional HF_TOKEN"
+  - "Typed provider and training-method selection for SFT, DPO, and reinforcement fine-tuning"
 
 dependencies:
-  - "Python packaging, test, lint, and typing tool selection"
+  - "Python packaging, test, and lint tool selection"
+  - "Pyright with strict type-checking mode"
 
 acceptance_criteria:
   - "Layered src package, test tiers, scripts, and configs are present."
@@ -44,6 +52,9 @@ acceptance_criteria:
   - "Inference and fine-tuning use cases select OpenAI API or Hugging Face Qwen adapters without application-code changes."
   - "Offline contract tests verify normalized provider adapter behavior."
   - "Decorators wrap provider adapters without changing application use cases."
+  - "Public contracts and core data types are annotated; external untyped payloads are translated at boundaries."
+  - "Pyright strict mode passes for src and tests."
+  - ".env.example contains empty OPENAI_API_KEY and optional HF_TOKEN; .env is Git-ignored."
   - "Architecture and developer documentation describe extension conventions."
   - "Architecture documentation records which design patterns are implemented or deferred."
   - "Artifacts and secrets are excluded and documented."
@@ -51,5 +62,5 @@ acceptance_criteria:
 verification:
   commands: []
   notes:
-    - "Populate selected tool commands during implementation."
+    - "Populate selected packaging, lint, test, and Pyright commands during implementation."
     - "Verify the unit tier without credentials, network access, or GPU access."
