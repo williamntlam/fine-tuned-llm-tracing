@@ -245,28 +245,52 @@ configuration and adapters validate them before a job starts.
 
 ## Pattern decision matrix
 
+### Implemented-pattern guide
+
+The following patterns are deliberately part of the initial scaffold. A
+pattern is not a requirement to add a class for every noun: introduce only the
+small named types and modules needed to uphold the stated boundary. The
+examples describe the intended first vertical slice and are the basis for the
+corresponding acceptance tests.
+
+| Pattern | How it is implemented here | Purpose | Value delivered |
+| --- | --- | --- | --- |
+| Ports and Adapters (dependency inversion) | Define small `Protocol` or abstract port contracts in `domain/` or `application/`. Keep OpenAI, Qwen, files, telemetry, and in-memory implementations in `infrastructure/adapters/`; pass a port implementation into a use case. | Make the application depend on a stable capability, rather than an SDK, filesystem, or service. | Unit tests substitute fakes without network, credentials, or GPUs; a provider can be replaced without rewriting the workflow. |
+| Application Service / Use Case | Give each workflow a named use case such as `DiagnoseIncident`, `TrainModel`, or `EvaluateRun`, with typed command and result models. Interfaces translate input, build dependencies, then call that use case. | Put workflow orchestration in one discoverable, framework-independent place. | CLI, HTTP, and jobs run the same behavior; business logic stays testable and does not leak into route or command handlers. |
+| Adapter | Implement each provider-facing port with an adapter, for example `OpenAIInferenceAdapter` and `QwenInferenceAdapter`. Translate provider requests and responses immediately at the boundary into provider-neutral types. | Isolate incompatible SDKs, credentials, runtime setup, and request/result formats. | The application has one inference and fine-tuning lifecycle contract while provider-specific capabilities remain explicit and contained. |
+| Factory Method | At each composition root, a factory reads typed settings and constructs the selected adapter and its dependencies. The factory returns the port type, not a provider-specific SDK client. | Centralize configuration-driven dependency selection and object lifetime. | Switching fake, OpenAI, or Qwen implementations is visible, reproducible, and requires no use-case change or global singleton. |
+| Decorator | Wrap a port implementation with independently composable wrappers such as `RedactingInferencePort`, `RetryingInferencePort`, and `TelemetryInferencePort`. Each wrapper preserves the same port contract and delegates to the wrapped port. | Add cross-cutting behavior outside provider adapters and use cases. | Retry, safe telemetry, rate limiting, and optional caching can be added, ordered, tested, or removed without duplicating provider code or changing callers. |
+| Command | Model a user-initiated action as a typed use-case input, for example `DiagnoseIncidentCommand` or `TrainModelCommand`; a use case consumes it and returns a typed result. This is a data command, not a command bus. | Make an operation's inputs explicit, validate them at a clear boundary, and separate the request from its delivery mechanism. | The same action can be invoked from CLI, HTTP, tests, or jobs with an auditable contract and no transport coupling. |
+| Strategy | Define a strategy protocol only where an algorithm is genuinely interchangeable, such as deterministic versus LLM-judge grading, sampling policy, or a selected training method. Inject the chosen strategy into the relevant use case or adapter. | Vary an algorithm through composition instead of conditional branches or inheritance. | New graders or training approaches can be compared and selected reproducibly without destabilizing the surrounding workflow. |
+
+The **port** is the stable interface; an **adapter** implements it for a
+specific external system. A **decorator** also implements that port, but adds
+behavior around another implementation. This distinction prevents provider
+translation, dependency selection, and cross-cutting concerns from being
+mixed together.
+
 | Pattern | Decision | Application in this project |
 | --- | --- | --- |
-| Factory Method | Implement | Select configured providers and infrastructure adapters at composition roots. |
+| Factory Method | Implement | Construct the configured port implementation at a composition root; see the implemented-pattern guide for lifecycle and substitution rules. |
 | Abstract Factory | Avoid/defer | A Factory Method is sufficient for the initial provider adapters. |
 | Builder | Avoid/defer | Use typed immutable configuration models before adding a builder layer. |
 | Prototype | Avoid/defer | Prefer versioned config and dataset templates; clone runtime objects only if safe duplication has a real use case. |
 | Singleton | Avoid/defer | Do not use global SDK clients, configuration, or registries; make lifetimes explicit at the composition root. |
-| Adapter | Implement | Normalize OpenAI API and Hugging Face Qwen inference and fine-tuning interactions behind provider-neutral ports. |
+| Adapter | Implement | Translate OpenAI API and Hugging Face Qwen inference and fine-tuning interactions behind provider-neutral ports; do not leak SDK types past infrastructure. |
 | Bridge | Avoid/defer | The provider abstraction and its implementations have one current axis of variation. |
 | Composite | Avoid/defer | Distributed topologies are usually graphs and should not be forced into a tree. |
-| Decorator | Implement | Wrap provider ports for telemetry, retries, rate limits, redaction, and, when justified, caching without changing adapters. |
+| Decorator | Implement | Wrap provider ports for telemetry, retries, rate limits, redaction, and, when justified, caching while preserving the port contract. |
 | Facade | Avoid/defer | Application use cases remain the public orchestration surface. |
 | Flyweight | Avoid/defer | Consider only for measured memory pressure from repeated immutable labels or topology metadata. |
 | Proxy | Avoid/defer | Use a decorator where wrapping behavior is needed; no proxy requirement exists. |
 | Chain of Responsibility | Avoid/defer | Keep validation and processing explicit in use cases until a pipeline is demonstrably needed. |
-| Command | Implement | Represent user-initiated application actions such as generate, train, evaluate, and diagnose as use-case request commands. |
+| Command | Implement | Represent user-initiated application actions such as generate, train, evaluate, and diagnose as typed use-case request commands, not a command bus. |
 | Iterator | Native language feature | Use Python iteration/generators for datasets; do not add a custom pattern layer unless traversal is itself a domain abstraction. |
 | Mediator | Avoid/defer | Use focused application services before adding a coordination hub. |
 | Memento | Avoid/defer | Preserve reproducibility with immutable, versioned configuration and experiment artifacts rather than in-memory state snapshots. |
 | Observer | Avoid/defer | Call tracking and telemetry explicitly from use cases until an event contract is required. |
 | State | Avoid/defer | Persist a fine-tuning status enum and validate transitions; do not add State objects initially. |
-| Strategy | Implement | Exchange grading approaches, sampling policies, and training algorithms such as SFT, LoRA, QLoRA, or DPO. |
+| Strategy | Implement | Exchange genuinely replaceable grading approaches, sampling policies, and training algorithms such as SFT, LoRA, QLoRA, or DPO. |
 | Template Method | Avoid/defer | Prefer composition and strategies over inheritance-based workflow skeletons. |
 | Visitor | Avoid/defer | Consider only when stable domain objects need multiple unrelated operations; avoid it for ordinary transformations. |
 

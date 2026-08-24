@@ -18,6 +18,18 @@ inspectable experiments and ground-truth labels.
 - Validate the narrowest meaningful unit after a change and report the command
   and result.
 
+## Change history
+
+Whenever a task makes a meaningful repository change, update the root-level
+`CHANGELOG.md` in that same change. Add a newest-first entry headed with the
+local Toronto date and time in the form `YYYY-MM-DD HH:MM TZ — brief delivery
+name`; refresh the timestamp immediately before the default-branch push when
+needed. Summarize the meaningful changes, affected areas, and verification; do
+not include secrets, generated artifacts, or a commit-by-commit transcript.
+Several changes delivered in one push may share one entry. Activate the local
+pre-push validator for a clone with `bash scripts/install-git-hooks.sh`; it
+blocks a default-branch push that does not include a `CHANGELOG.md` change.
+
 ## Documentation and skill upkeep
 
 For every task, decide whether the implementation changes a user-facing

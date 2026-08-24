@@ -1,0 +1,43 @@
+#!/usr/bin/env sh
+# Require a change-history entry whenever the default branch is updated.
+# Git invokes this hook with: <remote-name> <remote-url>, then supplies one
+# line per ref update on stdin: <local-ref> <local-oid> <remote-ref> <remote-oid>.
+
+set -eu
+
+remote_name=${1:-origin}
+zero_oid=0000000000000000000000000000000000000000
+remote_head=$(git symbolic-ref --quiet "refs/remotes/${remote_name}/HEAD" 2>/dev/null || true)
+
+case "$remote_head" in
+  "refs/remotes/${remote_name}/"*)
+    default_branch="refs/heads/${remote_head#"refs/remotes/${remote_name}/"}"
+    ;;
+  *)
+    # A newly cloned repository may not yet have a remote HEAD reference.
+    default_branch="refs/heads/main"
+    ;;
+esac
+
+while read -r local_ref local_oid remote_ref remote_oid
+do
+  # Deleting a branch and pushing non-default branches do not represent a
+  # delivered repository update, so neither needs a changelog entry.
+  [ "$remote_ref" = "$default_branch" ] || continue
+  [ "$local_oid" = "$zero_oid" ] && continue
+
+  if [ "$remote_oid" = "$zero_oid" ]; then
+    empty_tree=$(git hash-object -t tree /dev/null)
+    changelog_changed=0
+    git diff --quiet "$empty_tree" "$local_oid" -- CHANGELOG.md || changelog_changed=1
+  else
+    changelog_changed=0
+    git diff --quiet "$remote_oid" "$local_oid" -- CHANGELOG.md || changelog_changed=1
+  fi
+
+  if [ "$changelog_changed" -eq 0 ]; then
+    printf '%s\n' "Push blocked: ${default_branch} must include a CHANGELOG.md update." >&2
+    printf '%s\n' "Add a timestamped entry, stage and commit it, then retry the push." >&2
+    exit 1
+  fi
+done

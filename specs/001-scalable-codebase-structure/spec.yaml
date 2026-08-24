@@ -3,9 +3,9 @@ title: "Scalable codebase structure"
 status: "draft"
 owner: null
 created: "2026-08-23"
-updated: "2026-08-23"
+updated: "2026-08-24"
 
-summary: "Establish a framework-unopinionated Python layered architecture with explicit typed contracts, Pyright strict checking, and a target directory scaffold."
+summary: "Establish a framework-unopinionated Python layered architecture with explicit typed contracts, Pyright strict checking, a target directory scaffold, and documented pattern purpose, application, and value."
 
 links:
   spec: "spec.md"
@@ -23,6 +23,7 @@ scope:
     - "Ports/adapters, use cases, factories, and provider integration guidance"
     - "Fine-tuning context for OpenAI and open-weight Qwen across SFT, DPO, and reinforcement methods"
     - "Decorator-based cross-cutting provider behavior and explicit pattern deferrals"
+    - "Implemented-pattern guide covering ports/adapters, use cases, factories, decorators, commands, and strategies"
     - "Architecture, configuration, and developer documentation"
   out_of_scope:
     - "Dataset, training, serving, or tracking implementations"

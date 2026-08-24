@@ -7,6 +7,10 @@ and ML infrastructure project designed to explore how modern language
 models can be specialized, evaluated, and deployed for
 **distributed-system incident diagnosis**.
 
+For a concise record of the most recently delivered repository changes, see
+[CHANGELOG.md](CHANGELOG.md). Activate the local changelog validator once per
+clone with `bash scripts/install-git-hooks.sh`.
+
 The system takes structured observability data---such as distributed
 traces, logs, metrics, service dependencies, and incident metadata---and
 asks a model to identify the most likely root cause of an incident.

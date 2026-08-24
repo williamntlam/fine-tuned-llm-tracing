@@ -92,11 +92,23 @@ grader/reward requirements, runtime, artifacts, and evaluation evidence.
 
 ## Pattern decisions
 
-**Implement now:** Adapter for provider integration; Factory Method for adapter
-selection; Command-shaped use-case requests; Strategy for grading, sampling,
-and training algorithms; and Decorator around provider ports for telemetry,
-retries, rate limits, redaction, and optionally caching. Decorators must remain
-composable and must not alter application-use-case contracts.
+The complete implementation guidance, including examples and constraints, is
+in [spec.md](spec.md#implemented-pattern-guide).
+
+| Pattern | How it is applied | Purpose and value |
+| --- | --- | --- |
+| Ports and Adapters | Use cases depend on small domain/application ports; infrastructure supplies OpenAI, Qwen, file, or in-memory implementations. | Isolates external systems, enabling offline fakes and provider replacement without workflow rewrites. |
+| Application Service / Use Case | Typed commands and results drive named workflows; CLI, HTTP, and jobs only translate and compose. | Keeps orchestration reusable, discoverable, and independent of transport frameworks. |
+| Adapter | Provider adapters translate requests, responses, SDKs, credentials, and runtime concerns at the infrastructure boundary. | Gives application code a normalized contract without falsely equating provider capabilities. |
+| Factory Method | Composition roots construct the configured port implementation from typed settings. | Makes provider selection and lifetimes explicit; avoids global clients and use-case changes. |
+| Decorator | Contract-preserving wrappers add telemetry, retries, rate limits, redaction, and justified caching around ports. | Adds and tests cross-cutting behavior without duplicating adapter code or changing callers. |
+| Command | Typed use-case request objects represent generate, train, evaluate, and diagnose actions. | Makes inputs reusable across CLI, HTTP, jobs, and tests without a command bus. |
+| Strategy | Inject only genuinely interchangeable grading, sampling, or training algorithms. | Supports reproducible comparisons and extensions without condition-heavy workflows. |
+
+The port is the stable capability contract. Adapters implement it for external
+systems; decorators implement it while wrapping another port. This separation
+keeps provider translation, configuration selection, and cross-cutting concerns
+independent.
 
 **Avoid/defer:** Abstract Factory, Builder, Prototype, Singleton, Bridge,
 Composite, Facade, Flyweight, Proxy, Chain of Responsibility, Mediator,
