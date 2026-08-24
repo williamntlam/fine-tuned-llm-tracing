@@ -15,7 +15,7 @@ microservices.
 
 ## Core decisions
 
-- Use a layered package at `src/incident_diagnosis/`: `domain`,
+- Use a layered package at `src/tracing_diagnosis/`: `domain`,
   `application`, `infrastructure`, `interfaces`, and narrowly scoped `shared`.
 - Keep domain rules framework-free. `domain` and `application` cannot import
   `infrastructure` or `interfaces`; dependency wiring belongs in entrypoint
@@ -54,7 +54,7 @@ microservices.
 This is a planned scaffold; it does not yet exist in the repository.
 
 ```text
-src/incident_diagnosis/
+src/tracing_diagnosis/
 ├── domain/                 # Incident/diagnosis types and suitable ports
 ├── application/
 │   ├── ports/              # Inference and fine-tuning contracts

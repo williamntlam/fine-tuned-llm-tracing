@@ -50,10 +50,10 @@ project today and can grow into separately runnable workloads later.
 
 ### Functional requirements
 
-- Add a `src/incident_diagnosis/` Python package with the following layers:
+- Add a `src/tracing_diagnosis/` Python package with the following layers:
 
   ```text
-  src/incident_diagnosis/
+  src/tracing_diagnosis/
   ├── domain/           # Entities, value objects, domain policies, ports
   ├── application/      # Use cases and orchestration of domain ports
   ├── infrastructure/   # Concrete adapters: files, model SDKs, tracking, telemetry
@@ -158,7 +158,7 @@ empty modules before they have a responsibility.
 ```text
 .
 ├── src/
-│   └── incident_diagnosis/
+│   └── tracing_diagnosis/
 │       ├── __init__.py
 │       ├── domain/
 │       │   ├── __init__.py
@@ -302,7 +302,7 @@ configuration and adapters validate them before a job starts.
 
 ## Acceptance criteria
 
-- [ ] The repository contains the proposed `src/incident_diagnosis/` package
+- [ ] The repository contains the proposed `src/tracing_diagnosis/` package
   layout, `tests/` tiers, `scripts/`, and `configs/` directories.
 - [ ] A documented dependency-direction rule states that domain and application
   layers do not import infrastructure or interface layers.
