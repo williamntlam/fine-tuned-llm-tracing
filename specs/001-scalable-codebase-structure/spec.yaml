@@ -1,0 +1,47 @@
+id: "001-scalable-codebase-structure"
+title: "Scalable codebase structure"
+status: "draft"
+owner: null
+created: "2026-08-23"
+updated: "2026-08-23"
+
+summary: "Establish a Python-first layered architecture for scalable incident-diagnosis development."
+
+links:
+  spec: "spec.md"
+  artifacts: "artifacts.md"
+  issue: null
+  pull_request: null
+
+scope:
+  in_scope:
+    - "Python package and test directory structure"
+    - "Layered dependency boundaries and composition roots"
+    - "Ports/adapters, use cases, factories, and strategy guidance"
+    - "Architecture, configuration, and developer documentation"
+  out_of_scope:
+    - "Dataset, training, serving, or tracking implementations"
+    - "Production provider, database, cloud, or CI selection"
+    - "Premature microservice or plugin architecture"
+
+interfaces:
+  - "Domain incident and diagnosis result contracts"
+  - "Application ports for model, storage, tracking, and telemetry dependencies"
+  - "Interface-boundary transport schemas"
+
+dependencies:
+  - "Python packaging, test, lint, and typing tool selection"
+
+acceptance_criteria:
+  - "Layered src package, test tiers, scripts, and configs are present."
+  - "Domain and application do not import infrastructure or interfaces."
+  - "A use case runs with an in-memory fake adapter in an offline unit test."
+  - "Composition roots select adapters without changing use-case code."
+  - "Architecture and developer documentation describe extension conventions."
+  - "Artifacts and secrets are excluded and documented."
+
+verification:
+  commands: []
+  notes:
+    - "Populate selected tool commands during implementation."
+    - "Verify the unit tier without credentials, network access, or GPU access."

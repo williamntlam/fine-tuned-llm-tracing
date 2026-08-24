@@ -15,11 +15,17 @@ Each feature folder contains:
   criteria, and implementation plan.
 - `spec.yaml` — the concise machine-readable summary used for discovery,
   status, ownership, and links.
+- `artifacts.md` — a review brief that condenses the core decisions, scope,
+  interfaces, acceptance criteria, plan, and risks from both spec files.
 
-Keep both files aligned. Use observable acceptance criteria, identify affected
-interfaces or data contracts, and distinguish requirements from open questions.
-Update the specification as implementation decisions materially change it; do
-not mark it complete until its acceptance criteria have been verified.
+Keep all three files aligned. `artifacts.md` is not a changelog or a copy of
+`spec.md`: it is the fastest complete review surface for the feature. Preserve
+all decisions that affect implementation, review, risk, scope, or verification
+while linking to `spec.md` for supporting detail. Use observable acceptance
+criteria, identify affected interfaces or data contracts, and distinguish
+requirements from open questions. Update the specification as implementation
+decisions materially change it; do not mark it complete until its acceptance
+criteria have been verified.
 
 Read [`docs/specs.md`](../../docs/specs.md) for the full convention and the
 template files for the current fields.

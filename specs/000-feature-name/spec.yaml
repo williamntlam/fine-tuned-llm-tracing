@@ -9,6 +9,7 @@ summary: "Replace with a concise description of the intended outcome."
 
 links:
   spec: "spec.md"
+  artifacts: "artifacts.md"
   issue: null
   pull_request: null
 
