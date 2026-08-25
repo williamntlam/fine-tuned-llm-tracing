@@ -20,6 +20,14 @@ this file to quickly understand what changed in each GitHub push.
 - If several commits ship together, record one entry for that push. If a push
   contains no meaningful repository change, an entry is not required.
 
+## 2026-08-25 08:51 EDT — specification complexity review skill
+
+- Added `skills/spec-complexity-review` for checking that material complexity
+  in feature specifications has a clear, inspectable justification rather than
+  treating complexity itself as a defect.
+- Indexed the skill in `AGENTS.md` and `skills/README.md` for future spec work.
+- Verification: skill frontmatter and repository diff checks passed.
+
 ## 2026-08-24 11:23 EDT — repository change-history convention
 
 - Added this root-level change history so contributors can see the latest
